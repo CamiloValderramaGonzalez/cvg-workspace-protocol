@@ -1,0 +1,59 @@
+{
+  "name": "@cvg/workspace-protocol",
+  "version": "0.1.0",
+  "description": "Provider-neutral case, memory, evidence, and agent-role protocol extracted from CVG Studio.",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./schemas/*": "./schemas/*",
+    "./roles/*": "./roles/*",
+    "./skills/*": "./skills/*",
+    "./adapters/*": "./adapters/*",
+    "./examples/basic-case": "./examples/basic-case.mjs",
+    "./package.json": "./package.json"
+  },
+  "sideEffects": false,
+  "files": [
+    "dist",
+    "schemas",
+    "roles",
+    "skills",
+    "adapters",
+    "docs",
+    "examples/*.mjs",
+    "README.md"
+  ],
+  "scripts": {
+    "clean": "node -e \"require('node:fs').rmSync('dist',{recursive:true,force:true})\"",
+    "build": "npm run clean && tsc -p tsconfig.build.json",
+    "build:test": "npm run clean && tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "npm run build:test && node --test dist/tests/*.test.js",
+    "validate:skills": "node scripts/validate-skills.mjs",
+    "validate:schemas": "node scripts/validate-schemas.mjs",
+    "validate": "npm run typecheck && npm run test && npm run validate:schemas && npm run validate:skills",
+    "prepack": "npm run validate && npm run build"
+  },
+  "keywords": [
+    "ai-agents",
+    "case-management",
+    "memory",
+    "evidence",
+    "provider-neutral"
+  ],
+  "license": "UNLICENSED",
+  "engines": {
+    "node": ">=20"
+  },
+  "devDependencies": {
+    "@types/node": "^24.1.0",
+    "ajv": "^8.17.1",
+    "ajv-formats": "^3.0.1",
+    "typescript": "^5.8.3"
+  }
+}

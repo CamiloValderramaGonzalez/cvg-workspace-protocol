@@ -1,0 +1,4 @@
+interface:
+  display_name: "Close CVG Case"
+  short_description: "Check closure gates and prepare an RCA"
+  default_prompt: "Use $close-cvg-case to verify closure gates and prepare the final RCA."

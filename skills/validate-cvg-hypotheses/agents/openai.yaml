@@ -1,0 +1,4 @@
+interface:
+  display_name: "Validate CVG Hypotheses"
+  short_description: "Turn hypotheses into scoped test verdicts"
+  default_prompt: "Use $validate-cvg-hypotheses to design evidence-based tests for this hypothesis."

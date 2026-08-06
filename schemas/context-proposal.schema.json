@@ -1,0 +1,114 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:cvg:workspace-protocol:schema:context-proposal:1.0.0",
+  "title": "CVG Context Proposal Record",
+  "description": "Versioned proposal for changing durable case context, with optimistic-concurrency bases and review provenance.",
+  "type": "object",
+  "required": ["schema_version", "proposal_id", "case_id", "version", "base_version", "base_revision", "summary", "content", "evidence_refs", "status", "created_at", "updated_at", "proposed_by"],
+  "properties": {
+    "schema_version": { "const": "1.0.0" },
+    "proposal_id": { "$ref": "#/$defs/identifier" },
+    "case_id": { "$ref": "#/$defs/identifier" },
+    "version": { "type": "integer", "minimum": 1 },
+    "base_version": { "type": "integer", "minimum": 0 },
+    "base_revision": { "type": "integer", "minimum": 0 },
+    "summary": { "type": "string", "minLength": 1, "maxLength": 4000 },
+    "content": { "type": "string", "minLength": 1, "maxLength": 200000 },
+    "evidence_refs": { "type": "array", "items": { "$ref": "#/$defs/evidence_ref" } },
+    "status": { "enum": ["draft", "pending_review", "approved", "rejected", "superseded"] },
+    "created_at": { "$ref": "#/$defs/timestamp" },
+    "updated_at": { "$ref": "#/$defs/timestamp" },
+    "proposed_by": { "$ref": "#/$defs/provenance" },
+    "reviewed_by": { "$ref": "#/$defs/provenance" },
+    "review_note": { "type": "string", "maxLength": 8000 },
+    "supersedes_proposal_id": { "$ref": "#/$defs/identifier" },
+    "superseded_by_proposal_id": { "$ref": "#/$defs/identifier" }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": { "status": { "enum": ["approved", "superseded"] } },
+        "required": ["status"]
+      },
+      "then": {
+        "required": ["reviewed_by"],
+        "properties": {
+          "evidence_refs": { "type": "array", "minItems": 1 },
+          "reviewed_by": {
+            "type": "object",
+            "properties": { "actor_type": { "const": "human" } },
+            "required": ["actor_type"]
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": { "status": { "const": "superseded" } },
+        "required": ["status"]
+      },
+      "then": {
+        "properties": { "superseded_by_proposal_id": { "$ref": "#/$defs/identifier" } },
+        "required": ["superseded_by_proposal_id"]
+      }
+    }
+  ],
+  "additionalProperties": false,
+  "$defs": {
+    "identifier": { "type": "string", "minLength": 1, "maxLength": 200, "pattern": "^[A-Za-z0-9][A-Za-z0-9._~-]{0,199}$" },
+    "timestamp": { "type": "string", "format": "date-time" },
+    "provenance": {
+      "type": "object",
+      "required": ["actor", "actor_type", "source", "occurred_at"],
+      "properties": {
+        "actor": { "$ref": "#/$defs/identifier" },
+        "actor_type": { "enum": ["human", "agent", "system", "tool", "import"] },
+        "source": { "type": "string", "minLength": 1, "maxLength": 500 },
+        "occurred_at": { "$ref": "#/$defs/timestamp" },
+        "run_id": { "$ref": "#/$defs/identifier" },
+        "tool": { "type": "string", "minLength": 1, "maxLength": 200 }
+      },
+      "additionalProperties": false
+    },
+    "evidence_ref": {
+      "type": "object",
+      "properties": {
+        "artifact_id": { "$ref": "#/$defs/identifier" },
+        "uri": { "type": "string", "format": "uri" },
+        "path": { "$ref": "#/$defs/relative_path" },
+        "locator": { "type": "string", "minLength": 1, "maxLength": 2000 },
+        "digest": { "type": "string", "pattern": "^sha256:[a-f0-9]{64}$" },
+        "note": { "type": "string", "maxLength": 4000 }
+      },
+      "anyOf": [
+        { "properties": { "artifact_id": true }, "required": ["artifact_id"] },
+        { "properties": { "uri": true }, "required": ["uri"] },
+        { "properties": { "path": true }, "required": ["path"] },
+        { "properties": { "locator": true }, "required": ["locator"] },
+        { "properties": { "digest": true }, "required": ["digest"] }
+      ],
+      "additionalProperties": false
+    },
+    "relative_path": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 2000,
+      "pattern": "^(?![A-Za-z]:)(?!\\.{1,2}(?:/|$))(?!.*\\/\\.{1,2}(?:/|$))[^/\\\\<>:\"|?*\\u0000-\\u001F]+(?:/[^/\\\\<>:\"|?*\\u0000-\\u001F]+)*$"
+    }
+  },
+  "examples": [{
+    "schema_version": "1.0.0",
+    "proposal_id": "proposal-case-0042-3",
+    "case_id": "case-2026-0042",
+    "version": 3,
+    "base_version": 2,
+    "base_revision": 7,
+    "summary": "Record the validated connection-pool finding.",
+    "content": "The dominant checkout latency cause is database connection-pool contention under peak load.",
+    "evidence_refs": [{ "artifact_id": "artifact-case-0042-test-run-1" }],
+    "status": "pending_review",
+    "created_at": "2026-08-06T15:20:00Z",
+    "updated_at": "2026-08-06T15:20:00Z",
+    "proposed_by": { "actor": "agent-context-curator", "actor_type": "agent", "source": "context-governance", "occurred_at": "2026-08-06T15:20:00Z" }
+  }]
+}

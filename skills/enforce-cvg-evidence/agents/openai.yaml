@@ -1,0 +1,4 @@
+interface:
+  display_name: "Enforce CVG Evidence"
+  short_description: "Validate provenance and immutable evidence"
+  default_prompt: "Use $enforce-cvg-evidence to verify the evidence and provenance for this conclusion."

@@ -1,0 +1,4 @@
+interface:
+  display_name: "Govern CVG Context"
+  short_description: "Review and approve stable case context"
+  default_prompt: "Use $govern-cvg-context to review this context proposal for approval."

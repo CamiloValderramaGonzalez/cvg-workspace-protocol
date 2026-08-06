@@ -1,0 +1,104 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:cvg:workspace-protocol:schema:event:1.0.0",
+  "title": "CVG Event Record",
+  "description": "Append-only provider-neutral audit event, including agent handoffs.",
+  "type": "object",
+  "required": ["schema_version", "event_id", "case_id", "event_type", "occurred_at", "provenance", "payload"],
+  "properties": {
+    "schema_version": { "const": "1.0.0" },
+    "event_id": { "$ref": "#/$defs/identifier" },
+    "case_id": { "$ref": "#/$defs/identifier" },
+    "event_type": { "type": "string", "minLength": 1, "maxLength": 200, "pattern": "^[a-z][a-z0-9_.-]*$" },
+    "occurred_at": { "$ref": "#/$defs/timestamp" },
+    "provenance": { "$ref": "#/$defs/provenance" },
+    "payload": { "$ref": "#/$defs/json_object" }
+  },
+  "allOf": [{
+    "if": {
+      "properties": { "event_type": { "const": "agent.handoff-requested" } },
+      "required": ["event_type"]
+    },
+    "then": {
+      "properties": { "payload": { "$ref": "#/$defs/handoff_request" } }
+    }
+  }],
+  "additionalProperties": false,
+  "$defs": {
+    "identifier": { "type": "string", "minLength": 1, "maxLength": 200, "pattern": "^[A-Za-z0-9][A-Za-z0-9._~-]{0,199}$" },
+    "timestamp": { "type": "string", "format": "date-time" },
+    "json_object": { "type": "object" },
+    "relative_path": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 2000,
+      "pattern": "^(?![A-Za-z]:)(?!\\.{1,2}(?:/|$))(?!.*\\/\\.{1,2}(?:/|$))[^/\\\\<>:\"|?*\\u0000-\\u001F]+(?:/[^/\\\\<>:\"|?*\\u0000-\\u001F]+)*$"
+    },
+    "evidence_ref": {
+      "type": "object",
+      "properties": {
+        "artifact_id": { "$ref": "#/$defs/identifier" },
+        "uri": { "type": "string", "format": "uri" },
+        "path": { "$ref": "#/$defs/relative_path" },
+        "locator": { "type": "string", "minLength": 1, "maxLength": 2000 },
+        "digest": { "type": "string", "pattern": "^sha256:[a-f0-9]{64}$" },
+        "note": { "type": "string", "maxLength": 4000 }
+      },
+      "anyOf": [
+        { "properties": { "artifact_id": true }, "required": ["artifact_id"] },
+        { "properties": { "uri": true }, "required": ["uri"] },
+        { "properties": { "path": true }, "required": ["path"] },
+        { "properties": { "locator": true }, "required": ["locator"] },
+        { "properties": { "digest": true }, "required": ["digest"] }
+      ],
+      "additionalProperties": false
+    },
+    "handoff_request": {
+      "type": "object",
+      "required": ["handoff_id", "target_role", "objective", "artifact_refs", "evidence_refs"],
+      "properties": {
+        "handoff_id": { "$ref": "#/$defs/identifier" },
+        "target_role": { "$ref": "#/$defs/identifier" },
+        "objective": { "type": "string", "minLength": 1, "maxLength": 8000 },
+        "artifact_refs": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/identifier" }
+        },
+        "evidence_refs": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/evidence_ref" }
+        },
+        "context": { "$ref": "#/$defs/json_object" }
+      },
+      "additionalProperties": false
+    },
+    "provenance": {
+      "type": "object",
+      "required": ["actor", "actor_type", "source", "occurred_at"],
+      "properties": {
+        "actor": { "$ref": "#/$defs/identifier" },
+        "actor_type": { "enum": ["human", "agent", "system", "tool", "import"] },
+        "source": { "type": "string", "minLength": 1, "maxLength": 500 },
+        "occurred_at": { "$ref": "#/$defs/timestamp" },
+        "run_id": { "$ref": "#/$defs/identifier" },
+        "tool": { "type": "string", "minLength": 1, "maxLength": 200 }
+      },
+      "additionalProperties": false
+    }
+  },
+  "examples": [{
+    "schema_version": "1.0.0",
+    "event_id": "event-case-0042-000018",
+    "case_id": "case-2026-0042",
+    "event_type": "agent.handoff-requested",
+    "occurred_at": "2026-08-06T15:15:00Z",
+    "provenance": { "actor": "agent-diagnosis", "actor_type": "agent", "source": "case-orchestration", "occurred_at": "2026-08-06T15:15:00Z", "run_id": "run-case-0042-18" },
+    "payload": {
+      "handoff_id": "handoff-case-0042-000003",
+      "target_role": "evidence-reviewer",
+      "objective": "Verify the causal claim.",
+      "artifact_refs": [],
+      "evidence_refs": []
+    }
+  }]
+}

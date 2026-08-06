@@ -1,0 +1,4 @@
+interface:
+  display_name: "Operate CVG Workspace"
+  short_description: "Create and manage portable CVG cases"
+  default_prompt: "Use $operate-cvg-workspace to create and manage this investigation case."

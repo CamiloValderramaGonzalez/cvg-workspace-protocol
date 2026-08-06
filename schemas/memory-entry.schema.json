@@ -1,0 +1,89 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:cvg:workspace-protocol:schema:memory-entry:1.0.0",
+  "title": "CVG Memory Entry Record",
+  "description": "Durable, evidence-aware case or shared memory with explicit supersession.",
+  "type": "object",
+  "required": ["schema_version", "memory_id", "case_id", "scope", "classification", "statement", "evidence_refs", "confidence", "status", "revision", "created_at", "updated_at", "provenance"],
+  "properties": {
+    "schema_version": { "const": "1.0.0" },
+    "memory_id": { "$ref": "#/$defs/identifier" },
+    "case_id": { "$ref": "#/$defs/identifier" },
+    "scope": { "enum": ["case", "shared"] },
+    "shared_scope": { "type": "string", "minLength": 1, "maxLength": 300 },
+    "classification": { "enum": ["fact", "decision", "constraint", "preference", "lesson", "risk", "assumption"] },
+    "statement": { "type": "string", "minLength": 1, "maxLength": 20000 },
+    "evidence_refs": { "type": "array", "items": { "$ref": "#/$defs/evidence_ref" } },
+    "confidence": { "type": "number", "minimum": 0, "maximum": 1 },
+    "status": { "enum": ["active", "contested", "deprecated", "superseded", "retracted"] },
+    "revision": { "type": "integer", "minimum": 1 },
+    "supersedes_memory_id": { "$ref": "#/$defs/identifier" },
+    "superseded_by_memory_id": { "$ref": "#/$defs/identifier" },
+    "created_at": { "$ref": "#/$defs/timestamp" },
+    "updated_at": { "$ref": "#/$defs/timestamp" },
+    "provenance": { "$ref": "#/$defs/provenance" }
+  },
+  "allOf": [{
+    "if": { "properties": { "scope": { "const": "shared" } }, "required": ["scope"] },
+    "then": { "properties": { "shared_scope": { "type": "string" } }, "required": ["shared_scope"] }
+  }],
+  "additionalProperties": false,
+  "$defs": {
+    "identifier": { "type": "string", "minLength": 1, "maxLength": 200, "pattern": "^[A-Za-z0-9][A-Za-z0-9._~-]{0,199}$" },
+    "timestamp": { "type": "string", "format": "date-time" },
+    "provenance": {
+      "type": "object",
+      "required": ["actor", "actor_type", "source", "occurred_at"],
+      "properties": {
+        "actor": { "$ref": "#/$defs/identifier" },
+        "actor_type": { "enum": ["human", "agent", "system", "tool", "import"] },
+        "source": { "type": "string", "minLength": 1, "maxLength": 500 },
+        "occurred_at": { "$ref": "#/$defs/timestamp" },
+        "run_id": { "$ref": "#/$defs/identifier" },
+        "tool": { "type": "string", "minLength": 1, "maxLength": 200 }
+      },
+      "additionalProperties": false
+    },
+    "evidence_ref": {
+      "type": "object",
+      "properties": {
+        "artifact_id": { "$ref": "#/$defs/identifier" },
+        "uri": { "type": "string", "format": "uri" },
+        "path": { "$ref": "#/$defs/relative_path" },
+        "locator": { "type": "string", "minLength": 1, "maxLength": 2000 },
+        "digest": { "type": "string", "pattern": "^sha256:[a-f0-9]{64}$" },
+        "note": { "type": "string", "maxLength": 4000 }
+      },
+      "anyOf": [
+        { "properties": { "artifact_id": true }, "required": ["artifact_id"] },
+        { "properties": { "uri": true }, "required": ["uri"] },
+        { "properties": { "path": true }, "required": ["path"] },
+        { "properties": { "locator": true }, "required": ["locator"] },
+        { "properties": { "digest": true }, "required": ["digest"] }
+      ],
+      "additionalProperties": false
+    },
+    "relative_path": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 2000,
+      "pattern": "^(?![A-Za-z]:)(?!\\.{1,2}(?:/|$))(?!.*\\/\\.{1,2}(?:/|$))[^/\\\\<>:\"|?*\\u0000-\\u001F]+(?:/[^/\\\\<>:\"|?*\\u0000-\\u001F]+)*$"
+    }
+  },
+  "examples": [{
+    "schema_version": "1.0.0",
+    "memory_id": "memory-case-0042-pool-limit",
+    "case_id": "case-2026-0042",
+    "scope": "shared",
+    "shared_scope": "service:checkout",
+    "classification": "lesson",
+    "statement": "Pool saturation should be checked before increasing checkout worker concurrency.",
+    "evidence_refs": [{ "artifact_id": "artifact-case-0042-test-run-1" }],
+    "confidence": 0.96,
+    "status": "active",
+    "revision": 1,
+    "created_at": "2026-08-06T15:40:00Z",
+    "updated_at": "2026-08-06T15:40:00Z",
+    "provenance": { "actor": "agent-memory-curator", "actor_type": "agent", "source": "case-closeout", "occurred_at": "2026-08-06T15:40:00Z" }
+  }]
+}

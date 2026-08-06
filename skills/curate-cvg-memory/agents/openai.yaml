@@ -1,0 +1,4 @@
+interface:
+  display_name: "Curate CVG Memory"
+  short_description: "Promote durable facts into case memory"
+  default_prompt: "Use $curate-cvg-memory to update this case memory from the latest evidence."

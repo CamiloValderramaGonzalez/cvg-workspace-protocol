@@ -1,0 +1,66 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:cvg:workspace-protocol:schema:case:1.0.0",
+  "title": "CVG Case Record",
+  "description": "Provider-neutral root record for a managed CVG Studio case.",
+  "type": "object",
+  "required": ["schema_version", "case_id", "title", "objective", "summary", "status", "revision", "labels", "metadata", "created_at", "updated_at", "created_by"],
+  "properties": {
+    "schema_version": { "const": "1.0.0" },
+    "case_id": { "$ref": "#/$defs/identifier" },
+    "title": { "type": "string", "minLength": 1, "maxLength": 300 },
+    "objective": { "type": "string", "minLength": 1, "maxLength": 8000 },
+    "summary": { "type": "string", "maxLength": 8000 },
+    "status": { "enum": ["draft", "active", "blocked", "resolved", "closed", "discarded"] },
+    "revision": { "type": "integer", "minimum": 0 },
+    "labels": { "type": "array", "items": { "type": "string", "minLength": 1, "maxLength": 100 }, "uniqueItems": true },
+    "metadata": { "$ref": "#/$defs/json_object" },
+    "created_at": { "$ref": "#/$defs/timestamp" },
+    "updated_at": { "$ref": "#/$defs/timestamp" },
+    "closed_at": { "$ref": "#/$defs/timestamp" },
+    "created_by": { "$ref": "#/$defs/provenance" }
+  },
+  "allOf": [{
+    "if": {
+      "properties": { "status": { "const": "closed" } },
+      "required": ["status"]
+    },
+    "then": {
+      "properties": { "closed_at": { "$ref": "#/$defs/timestamp" } },
+      "required": ["closed_at"]
+    }
+  }],
+  "additionalProperties": false,
+  "$defs": {
+    "identifier": { "type": "string", "minLength": 1, "maxLength": 200, "pattern": "^[A-Za-z0-9][A-Za-z0-9._~-]{0,199}$" },
+    "timestamp": { "type": "string", "format": "date-time" },
+    "json_object": { "type": "object" },
+    "provenance": {
+      "type": "object",
+      "required": ["actor", "actor_type", "source", "occurred_at"],
+      "properties": {
+        "actor": { "$ref": "#/$defs/identifier" },
+        "actor_type": { "enum": ["human", "agent", "system", "tool", "import"] },
+        "source": { "type": "string", "minLength": 1, "maxLength": 500 },
+        "occurred_at": { "$ref": "#/$defs/timestamp" },
+        "run_id": { "$ref": "#/$defs/identifier" },
+        "tool": { "type": "string", "minLength": 1, "maxLength": 200 }
+      },
+      "additionalProperties": false
+    }
+  },
+  "examples": [{
+    "schema_version": "1.0.0",
+    "case_id": "case-2026-0042",
+    "title": "Checkout latency investigation",
+    "objective": "Identify and validate the dominant cause of checkout latency.",
+    "summary": "Investigation opened after a sustained latency increase.",
+    "status": "active",
+    "revision": 0,
+    "labels": ["checkout", "latency"],
+    "metadata": { "service": "checkout" },
+    "created_at": "2026-08-06T13:15:00Z",
+    "updated_at": "2026-08-06T13:15:00Z",
+    "created_by": { "actor": "human-operator-17", "actor_type": "human", "source": "workspace-ui", "occurred_at": "2026-08-06T13:15:00Z" }
+  }]
+}

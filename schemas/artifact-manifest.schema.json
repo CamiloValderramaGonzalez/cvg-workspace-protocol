@@ -1,0 +1,62 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:cvg:workspace-protocol:schema:artifact-manifest:1.0.0",
+  "title": "CVG Artifact Manifest",
+  "description": "Manifest record for one immutable file stored as case evidence or work product.",
+  "type": "object",
+  "required": ["schema_version", "artifact_id", "case_id", "kind", "title", "path", "media_type", "size_bytes", "digest", "metadata", "created_at", "created_by"],
+  "properties": {
+    "schema_version": { "const": "1.0.0" },
+    "artifact_id": { "$ref": "#/$defs/identifier" },
+    "case_id": { "$ref": "#/$defs/identifier" },
+    "kind": { "enum": ["source", "evidence", "diagnosis", "requirement", "test_plan", "test_run", "decision", "report", "attachment", "other"] },
+    "title": { "type": "string", "minLength": 1, "maxLength": 300 },
+    "path": { "$ref": "#/$defs/relative_path" },
+    "media_type": { "type": "string", "minLength": 1, "maxLength": 200 },
+    "size_bytes": { "type": "integer", "minimum": 0 },
+    "digest": { "type": "string", "pattern": "^sha256:[a-f0-9]{64}$" },
+    "source": { "type": "string", "minLength": 1, "maxLength": 2000 },
+    "metadata": { "$ref": "#/$defs/json_object" },
+    "created_at": { "$ref": "#/$defs/timestamp" },
+    "created_by": { "$ref": "#/$defs/provenance" }
+  },
+  "additionalProperties": false,
+  "$defs": {
+    "identifier": { "type": "string", "minLength": 1, "maxLength": 200, "pattern": "^[A-Za-z0-9][A-Za-z0-9._~-]{0,199}$" },
+    "timestamp": { "type": "string", "format": "date-time" },
+    "json_object": { "type": "object" },
+    "relative_path": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 2000,
+      "pattern": "^(?![A-Za-z]:)(?!\\.{1,2}(?:/|$))(?!.*\\/\\.{1,2}(?:/|$))[^/\\\\<>:\"|?*\\u0000-\\u001F]+(?:/[^/\\\\<>:\"|?*\\u0000-\\u001F]+)*$"
+    },
+    "provenance": {
+      "type": "object",
+      "required": ["actor", "actor_type", "source", "occurred_at"],
+      "properties": {
+        "actor": { "$ref": "#/$defs/identifier" },
+        "actor_type": { "enum": ["human", "agent", "system", "tool", "import"] },
+        "source": { "type": "string", "minLength": 1, "maxLength": 500 },
+        "occurred_at": { "$ref": "#/$defs/timestamp" },
+        "run_id": { "$ref": "#/$defs/identifier" },
+        "tool": { "type": "string", "minLength": 1, "maxLength": 200 }
+      },
+      "additionalProperties": false
+    }
+  },
+  "examples": [{
+    "schema_version": "1.0.0",
+    "artifact_id": "artifact-case-0042-test-run-1",
+    "case_id": "case-2026-0042",
+    "kind": "test_run",
+    "title": "Connection-pool validation run",
+    "path": "artifacts/artifact-case-0042-test-run-1/results.json",
+    "media_type": "application/json",
+    "size_bytes": 2481,
+    "digest": "sha256:abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789",
+    "metadata": { "environment": "qa" },
+    "created_at": "2026-08-06T15:12:10Z",
+    "created_by": { "actor": "agent-validator", "actor_type": "agent", "source": "test-execution", "occurred_at": "2026-08-06T15:12:10Z", "tool": "workspace-test-runner" }
+  }]
+}
