@@ -1,0 +1,4 @@
+interface:
+  display_name: "CVG sprint planning"
+  short_description: "Orden y dependencias de tareas de un sprint"
+  default_prompt: "Usá $cvg-sprint-plan para proponer el orden de estas tareas y detectar bloqueos."

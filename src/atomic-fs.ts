@@ -1,6 +1,7 @@
 import { randomUUID } from "node:crypto";
 import * as fs from "node:fs/promises";
 import * as path from "node:path";
+import { setTimeout as delay } from "node:timers/promises";
 
 export async function pathExists(file_path: string): Promise<boolean> {
   try {
@@ -27,7 +28,25 @@ export async function atomicWriteFile(
     await handle.sync();
     await handle.close();
     handle = undefined;
-    await fs.rename(temp, file_path);
+    // Windows readers can briefly deny replacement. Retry only the atomic
+    // rename: never remove the destination or recreate the synced temp file.
+    const retryDelays = [100, 150, 200, 250, 250];
+    let firstError: unknown;
+    for (let attempt = 0; ; attempt++) {
+      try {
+        await fs.rename(temp, file_path);
+        break;
+      } catch (error) {
+        if (attempt === 0) firstError = error;
+        if (process.platform !== "win32" ||
+            !["EPERM", "EACCES", "EBUSY"].includes((error as NodeJS.ErrnoException).code ?? "")) {
+          throw error;
+        }
+        const delayMs = retryDelays[attempt];
+        if (delayMs === undefined) throw firstError;
+        await delay(delayMs);
+      }
+    }
   } finally {
     await handle?.close().catch(() => undefined);
     await fs.rm(temp, { force: true }).catch(() => undefined);

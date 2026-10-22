@@ -1,6 +1,9 @@
 # CVG Workspace Protocol
 
-Portable extraction of CVG Studio's case-management, memory, evidence, context, validation, and closure model. The package deliberately contains no AI SDK, CLI invocation, MCP name, infrastructure command, or editor dependency.
+Shared protocol for **CVG Studio CLI** (without a frontend) and **CVG Studio View**
+(visual application). The core entrypoint contains the provider-neutral case,
+memory, evidence, context, validation and closure model. The optional
+`./workflows` module contains the application services and read adapters.
 
 The filesystem is the source of truth. AI systems are replaceable readers and contributors; they never own canonical state and should mutate it only through the core API.
 
@@ -121,7 +124,7 @@ cvg-workspace-protocol/
 
 An integration may use Claude, OpenAI, Gemini, a local model, or a deterministic program. It receives a discriminated `AgentRequest`: `bootstrap` proposes the first case without fabricated context, while `case` requires a shared `ContextAssembler` snapshot. It emits normalized events and a structured result, and leaves persistence to this package. Handoffs use required idempotency identifiers and travel only through normalized events. Public audit extensions must use `custom.*`, `agent.*`, or `integration.*`; core lifecycle event names are reserved for validated store operations. See `adapters/CONTRACT.md`.
 
-## Relationship to CVG Studio
+## CVG Studio CLI and CVG Studio View
 
 This is a clean extraction, not a refactor of a particular host application. It keeps the durable concepts while intentionally excluding:
 
@@ -131,4 +134,8 @@ This is a clean extraction, not a refactor of a particular host application. It 
 - Kubernetes, Kafka, logs, metrics, and ticket-provider integrations;
 - existing case migration and compatibility logic.
 
-The original product remains unchanged. A future migration can translate existing cases into these schemas without coupling the protocol back to a specific AI runtime.
+The original core entrypoint keeps those exclusions. The optional `./workflows`
+subpath now adds shared source versions, Azure read adapters, PR review and a
+headless CVG Studio CLI, also consumed by CVG Studio View. It does not migrate the full legacy case
+lifecycle. See [workflows](docs/workflows.md) for setup, implemented scope and
+the remaining distribution/migration work.

@@ -1,0 +1,4 @@
+interface:
+  display_name: "CVG PR review"
+  short_description: "Revisión de PRs con evidencia y commits fijos"
+  default_prompt: "Usá $cvg-pr-review para analizar este PR de Azure y explicar sus defectos y límites."
