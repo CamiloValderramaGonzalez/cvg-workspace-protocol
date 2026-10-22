@@ -5,11 +5,13 @@
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
+  "bin": { "cvg-studio-cli": "./dist/workflows/cli.js", "cvg-workflow": "./dist/workflows/cli.js" },
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js"
     },
+    "./workflows": { "types": "./dist/workflows/index.d.ts", "import": "./dist/workflows/index.js" },
     "./schemas/*": "./schemas/*",
     "./roles/*": "./roles/*",
     "./skills/*": "./skills/*",
